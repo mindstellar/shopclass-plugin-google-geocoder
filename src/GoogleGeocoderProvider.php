@@ -63,8 +63,15 @@ final class GoogleGeocoderProvider implements GeocodeProvider
         return '';
     }
 
-    /** The request URL, key included. */
-    public function url(string $address, ?string $countryCode = null): string
+    public function endpoint(): string
+    {
+        return 'https://maps.googleapis.com/maps/api/geocode/json';
+    }
+
+    /**
+     * @return array<string,string>
+     */
+    public function params(string $address, ?string $countryCode = null): array
     {
         $query = array('address' => $address, 'key' => $this->apiKey);
         if ($countryCode !== null && preg_match('/^[A-Za-z]{2}\z/', $countryCode)) {
@@ -74,7 +81,13 @@ final class GoogleGeocoderProvider implements GeocodeProvider
             $query['components'] = 'country:' . $code;
         }
 
-        return 'https://maps.googleapis.com/maps/api/geocode/json?' . http_build_query($query, '', '&', PHP_QUERY_RFC3986);
+        return $query;
+    }
+
+    /** The request URL, key included. For tests; the lookup itself never builds it here. */
+    public function url(string $address, ?string $countryCode = null): string
+    {
+        return $this->endpoint() . '?' . http_build_query($this->params($address, $countryCode), '', '&', PHP_QUERY_RFC3986);
     }
 
     public function geocode(string $address, ?string $countryCode = null): ?array
@@ -84,9 +97,9 @@ final class GoogleGeocoderProvider implements GeocodeProvider
         }
 
         try {
-            $response = $this->http->get($this->url($address, $countryCode));
+            $response = $this->http->get($this->endpoint(), $this->params($address, $countryCode));
         } catch (HttpException $e) {
-            throw new RuntimeException($this->mask($e->getMessage()), 0, $e);
+            throw new RuntimeException($this->mask($e->getMessage()));
         }
 
         $httpStatus = $response['status'];
@@ -126,7 +139,7 @@ final class GoogleGeocoderProvider implements GeocodeProvider
     {
         $text = $data['error_message'] ?? '';
 
-        return is_string($text) && $text !== '' ? ' (' . substr($text, 0, 200) . ')' : '';
+        return is_string($text) && $text !== '' ? ' (' . substr($this->mask($text), 0, 200) . ')' : '';
     }
 
     private function mask(string $text): string

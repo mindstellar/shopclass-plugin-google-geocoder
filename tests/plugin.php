@@ -60,6 +60,14 @@ $GLOBALS['prefs'][SECTION] = array('api_key' => 'k');
 Plugin::uninstall();
 pin('key removed', array(), $GLOBALS['prefs'][SECTION]);
 
+harness_section('uninstall resets the chosen provider');
+$GLOBALS['prefs']['osclass'][GeocodeProviderRegistry::PREF] = GoogleGeocoderProvider::ID;
+Plugin::uninstall();
+pin('core no longer points at it', '', $GLOBALS['prefs']['osclass'][GeocodeProviderRegistry::PREF]);
+$GLOBALS['prefs']['osclass'][GeocodeProviderRegistry::PREF] = 'other';
+Plugin::uninstall();
+pin('another choice is left alone', 'other', $GLOBALS['prefs']['osclass'][GeocodeProviderRegistry::PREF]);
+
 harness_section('settings page declaration');
 $spec  = require __DIR__ . '/../settings.php';
 $names = array();

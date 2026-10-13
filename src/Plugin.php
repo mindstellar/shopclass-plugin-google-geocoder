@@ -47,6 +47,10 @@ final class Plugin
     /** Remove the stored key. */
     public static function uninstall(): void
     {
+        // Do not leave core pointing at a provider that is gone.
+        if ((string) osc_get_preference(GeocodeProviderRegistry::PREF) === GoogleGeocoderProvider::ID) {
+            osc_set_preference(GeocodeProviderRegistry::PREF, '');
+        }
         osc_delete_preference('api_key', self::PAGE);
     }
 

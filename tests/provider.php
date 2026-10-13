@@ -95,4 +95,35 @@ $body = json_encode(array('status' => 'REQUEST_DENIED', 'error_message' => 'The 
 $msg  = (string) thrown(fn () => make((new FakeHttp())->answer(200, $body))->geocode('x'));
 check('Google error text is masked', !str_contains($msg, 'AIzaTESTKEY') && str_contains($msg, 'REQUEST_DENIED'), $msg);
 
+harness_section('hardening');
+function caught(callable $fn): ?Throwable
+{
+    try {
+        $fn();
+    } catch (RuntimeException $e) {
+        return $e;
+    }
+
+    return null;
+}
+$e = caught(fn () => make((new FakeHttp())->fail('boom AIzaTESTKEY'))->geocode('x'));
+pin('the HTTP error is not chained', null, $e->getPrevious());
+check('no stack frame argument holds the key', !str_contains(json_encode(array_map(fn ($f) => $f['args'] ?? array(), $e->getTrace()), JSON_PARTIAL_OUTPUT_ON_ERROR), 'AIzaTESTKEY'));
+check('the trace text has no key', !str_contains($e->getTraceAsString(), 'AIzaTESTKEY'));
+$spy = new FakeHttp();
+$spy->answer(200, '{"status":"ZERO_RESULTS"}');
+make($spy)->geocode('addr', 'IN');
+check('the client gets the endpoint apart from the key', !str_contains($spy->calls[0][0], 'AIzaTESTKEY') && str_starts_with($spy->calls[0][0], 'https://'));
+
+$buf = new mindstellar\googlegeocoder\Http\BodyBuffer(10);
+pin('a chunk under the limit is taken', 6, $buf->append('abcdef'));
+pin('a chunk past the limit is refused', 0, $buf->append('ghijk'));
+pin('and flagged', true, $buf->overflowed());
+pin('the body keeps only what fit', 'abcdef', $buf->body());
+pin('a chunk to exactly the limit is taken', 4, (new mindstellar\googlegeocoder\Http\BodyBuffer(4))->append('abcd'));
+
+$body = json_encode(array('status' => 'REQUEST_DENIED', 'error_message' => str_repeat('a', 195) . 'AIzaTESTKEY tail'));
+$msg  = (string) thrown(fn () => make((new FakeHttp())->answer(200, $body))->geocode('x'));
+check('a key cut by the 200 character limit is still masked', !str_contains($msg, 'AIza'), $msg);
+
 exit(harness_result());
