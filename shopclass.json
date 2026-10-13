@@ -2,8 +2,16 @@
   "$schema": "../schema/package.schema.json",
   "slug": "google-geocoder",
   "type": "plugin",
-  "categories": ["maps"],
-  "tags": ["geocoding", "maps", "address", "google", "distance-search"],
+  "categories": [
+    "integrations"
+  ],
+  "tags": [
+    "geocoding",
+    "maps",
+    "address",
+    "google",
+    "distance-search"
+  ],
   "short_description": "Find the exact map position of a listing from its street address with the Google Geocoding API, for distance search.",
   "icon": "assets/icon.svg",
   "license": "GPL-3.0-or-later",

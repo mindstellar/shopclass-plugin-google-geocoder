@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace mindstellar\googlegeocoder;
 
-use mindstellar\googlegeocoder\Http\CurlClient;
+use mindstellar\http\CurlHttpClient;
 use mindstellar\location\GeocodeProviderRegistry;
 
 /**
@@ -24,12 +24,15 @@ final class Plugin
     /** Settings page id, and the preference section its values live in. */
     public const PAGE = 'google_geocoder';
 
+    /** Core's preference naming the active provider. Spelled out so uninstall works on an older core. */
+    private const CORE_PREF = 'geocode_provider';
+
     /** Build the provider from the saved settings. */
     public static function provider(): GoogleGeocoderProvider
     {
         return new GoogleGeocoderProvider(
             (string) osc_get_preference('api_key', self::PAGE),
-            new CurlClient()
+            new CurlHttpClient()
         );
     }
 
@@ -48,8 +51,8 @@ final class Plugin
     public static function uninstall(): void
     {
         // Do not leave core pointing at a provider that is gone.
-        if ((string) osc_get_preference(GeocodeProviderRegistry::PREF) === GoogleGeocoderProvider::ID) {
-            osc_set_preference(GeocodeProviderRegistry::PREF, '');
+        if ((string) osc_get_preference(self::CORE_PREF) === GoogleGeocoderProvider::ID) {
+            osc_set_preference(self::CORE_PREF, '');
         }
         osc_delete_preference('api_key', self::PAGE);
     }
@@ -57,7 +60,7 @@ final class Plugin
     /** Warn the owner when this plugin is the chosen lookup but has no key. */
     public static function adminNotice(): void
     {
-        if ((string) osc_get_preference(GeocodeProviderRegistry::PREF) !== GoogleGeocoderProvider::ID
+        if ((string) osc_get_preference(self::CORE_PREF) !== GoogleGeocoderProvider::ID
             || (string) osc_get_preference('api_key', self::PAGE) !== '') {
             return;
         }

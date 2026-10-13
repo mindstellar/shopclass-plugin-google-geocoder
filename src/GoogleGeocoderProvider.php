@@ -13,8 +13,8 @@ declare(strict_types=1);
 
 namespace mindstellar\googlegeocoder;
 
-use mindstellar\googlegeocoder\Http\HttpClient;
-use mindstellar\googlegeocoder\Http\HttpException;
+use mindstellar\http\HttpClient;
+use mindstellar\http\HttpException;
 use mindstellar\location\GeocodeProvider;
 use RuntimeException;
 
@@ -30,6 +30,9 @@ final class GoogleGeocoderProvider implements GeocodeProvider
 
     /** Statuses that mean the request itself or the key is wrong, not the address. */
     private const REFUSED = array('REQUEST_DENIED', 'INVALID_REQUEST', 'OVER_QUERY_LIMIT', 'OVER_DAILY_LIMIT', 'UNKNOWN_ERROR');
+
+    /** Short timeouts so a slow service cannot hold up the job, and a cap on the answer. */
+    private const HTTP_OPTIONS = array('connect_timeout' => 3, 'timeout' => 5, 'max_bytes' => 65536);
 
     private string $apiKey;
 
@@ -63,15 +66,8 @@ final class GoogleGeocoderProvider implements GeocodeProvider
         return '';
     }
 
-    public function endpoint(): string
-    {
-        return 'https://maps.googleapis.com/maps/api/geocode/json';
-    }
-
-    /**
-     * @return array<string,string>
-     */
-    public function params(string $address, ?string $countryCode = null): array
+    /** The request URL, key included. */
+    public function url(string $address, ?string $countryCode = null): string
     {
         $query = array('address' => $address, 'key' => $this->apiKey);
         if ($countryCode !== null && preg_match('/^[A-Za-z]{2}\z/', $countryCode)) {
@@ -81,13 +77,8 @@ final class GoogleGeocoderProvider implements GeocodeProvider
             $query['components'] = 'country:' . $code;
         }
 
-        return $query;
-    }
 
-    /** The request URL, key included. For tests; the lookup itself never builds it here. */
-    public function url(string $address, ?string $countryCode = null): string
-    {
-        return $this->endpoint() . '?' . http_build_query($this->params($address, $countryCode), '', '&', PHP_QUERY_RFC3986);
+        return 'https://maps.googleapis.com/maps/api/geocode/json' . '?' . http_build_query($query, '', '&', PHP_QUERY_RFC3986);
     }
 
     public function geocode(string $address, ?string $countryCode = null): ?array
@@ -97,7 +88,7 @@ final class GoogleGeocoderProvider implements GeocodeProvider
         }
 
         try {
-            $response = $this->http->get($this->endpoint(), $this->params($address, $countryCode));
+            $response = $this->http->send('GET', $this->url($address, $countryCode), array('Accept' => 'application/json'), null, self::HTTP_OPTIONS);
         } catch (HttpException $e) {
             throw new RuntimeException($this->mask($e->getMessage()));
         }

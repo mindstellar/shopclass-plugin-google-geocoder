@@ -25,6 +25,12 @@ limited to your site's web address, so Google refuses it for lookups made by the
 
 The saved key is never shown again. Leave the box blank to keep it.
 
+## When lookups run
+
+A lookup runs from the job queue after a listing with a street address is saved, not while the
+visitor waits. Cron (or auto-cron) must be running; that is enough on shared hosting, and a
+queue worker makes it faster.
+
 ## Errors
 
 A quota error, a refused key or an unreachable service makes the lookup fail, and Shopclass
@@ -35,6 +41,11 @@ tries again later. An address Google cannot find is remembered for a day.
 Positions are kept for 30 days, the longest Google allows. Google's terms want the results
 shown with a Google map, so use this plugin with the Google Maps display, not another map.
 The plugin prints no attribution of its own.
+
+## Uninstall
+
+The plugin's settings are removed. If *Address lookup* in Settings → General → Maps named this
+plugin, it is reset to none.
 
 ## Tests
 

@@ -113,14 +113,8 @@ check('the trace text has no key', !str_contains($e->getTraceAsString(), 'AIzaTE
 $spy = new FakeHttp();
 $spy->answer(200, '{"status":"ZERO_RESULTS"}');
 make($spy)->geocode('addr', 'IN');
-check('the client gets the endpoint apart from the key', !str_contains($spy->calls[0][0], 'AIzaTESTKEY') && str_starts_with($spy->calls[0][0], 'https://'));
+pin('timeouts and size cap are passed', array('connect_timeout' => 3, 'timeout' => 5, 'max_bytes' => 65536), $spy->options[0]);
 
-$buf = new mindstellar\googlegeocoder\Http\BodyBuffer(10);
-pin('a chunk under the limit is taken', 6, $buf->append('abcdef'));
-pin('a chunk past the limit is refused', 0, $buf->append('ghijk'));
-pin('and flagged', true, $buf->overflowed());
-pin('the body keeps only what fit', 'abcdef', $buf->body());
-pin('a chunk to exactly the limit is taken', 4, (new mindstellar\googlegeocoder\Http\BodyBuffer(4))->append('abcd'));
 
 $body = json_encode(array('status' => 'REQUEST_DENIED', 'error_message' => str_repeat('a', 195) . 'AIzaTESTKEY tail'));
 $msg  = (string) thrown(fn () => make((new FakeHttp())->answer(200, $body))->geocode('x'));

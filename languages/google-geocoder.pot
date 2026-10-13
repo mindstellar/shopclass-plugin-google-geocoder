@@ -28,11 +28,11 @@ msgstr ""
 msgid "Google Maps Geocoder needs Shopclass 7.0 or later and is switched off. Update Shopclass to use it."
 msgstr ""
 
-#: src/Plugin.php:63
+#: src/Plugin.php:70
 msgid "Google Maps Geocoder settings"
 msgstr ""
 
-#: src/Plugin.php:61
+#: src/Plugin.php:68
 msgid "Google Maps is chosen for address lookup but has no API key, so no address is looked up."
 msgstr ""
 
