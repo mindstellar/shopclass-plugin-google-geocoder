@@ -120,4 +120,28 @@ $body = json_encode(array('status' => 'REQUEST_DENIED', 'error_message' => str_r
 $msg  = (string) thrown(fn () => make((new FakeHttp())->answer(200, $body))->geocode('x'));
 check('a key cut by the 200 character limit is still masked', !str_contains($msg, 'AIza'), $msg);
 
+harness_section('no key');
+$spy = new FakeHttp();
+check('geocode without a key throws', thrown(fn () => make($spy, '')->geocode('x', 'IN')) !== null);
+pin('and sends no request', 0, count($spy->urls));
+
+harness_section('the key never leaks, whatever the answer');
+$key   = 'AIzaTESTKEY';
+$cases = array(
+    'HTTP 429'                => array(429, 'quota for key=' . $key),
+    'HTTP 500'                => array(500, 'error key=' . $key),
+    'HTTP 503'                => array(503, $key),
+    'HTTP 403 not JSON'       => array(403, 'denied ' . $key),
+    '200 not JSON'            => array(200, '<html>' . $key . '</html>'),
+    '200 no coordinates'      => array(200, json_encode(array('status' => 'OK', 'results' => array(), 'key' => $key))),
+    'denied with the key'     => array(200, json_encode(array('status' => 'REQUEST_DENIED', 'error_message' => 'bad ' . $key))),
+    'long message ends in key' => array(200, json_encode(array('status' => 'REQUEST_DENIED', 'error_message' => str_repeat('a', 300) . $key))),
+    'odd status text'         => array(200, json_encode(array('status' => $key . 'X'))),
+);
+foreach ($cases as $label => [$status, $body]) {
+    $msg = thrown(fn () => make((new FakeHttp())->answer($status, $body), $key)->geocode('x'));
+    check("$label throws", $msg !== null);
+    check("$label message has no key", $msg !== null && !str_contains($msg, $key) && !str_contains($msg, 'AIza'), (string) $msg);
+}
+
 exit(harness_result());
