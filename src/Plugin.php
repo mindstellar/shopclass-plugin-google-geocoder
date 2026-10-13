@@ -1,0 +1,65 @@
+<?php
+
+/*
+ * This file is part of the Google Maps Geocoder plugin for Shopclass.
+ * Copyright (c) 2026 Navjot Tomer (Mindstellar) and contributors
+ *
+ * Distributed under the GNU General Public License v3.0 or later. See LICENSE.
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
+declare(strict_types=1);
+
+namespace mindstellar\googlegeocoder;
+
+use mindstellar\googlegeocoder\Http\CurlClient;
+use mindstellar\location\GeocodeProviderRegistry;
+
+/**
+ * The wiring: the provider, its settings and the admin notice.
+ */
+final class Plugin
+{
+    /** Settings page id, and the preference section its values live in. */
+    public const PAGE = 'google_geocoder';
+
+    /** Build the provider from the saved settings. */
+    public static function provider(): GoogleGeocoderProvider
+    {
+        return new GoogleGeocoderProvider(
+            (string) osc_get_preference('api_key', self::PAGE),
+            new CurlClient()
+        );
+    }
+
+    /** Hook callback: add the provider to core's registry. */
+    public static function register(GeocodeProviderRegistry $registry): void
+    {
+        $registry->register(self::provider());
+    }
+
+    /** Nothing to set up: the settings page makes its own preferences. */
+    public static function install(): void
+    {
+    }
+
+    /** Remove the stored key. */
+    public static function uninstall(): void
+    {
+        osc_delete_preference('api_key', self::PAGE);
+    }
+
+    /** Warn the owner when this plugin is the chosen lookup but has no key. */
+    public static function adminNotice(): void
+    {
+        if ((string) osc_get_preference(GeocodeProviderRegistry::PREF) !== GoogleGeocoderProvider::ID
+            || (string) osc_get_preference('api_key', self::PAGE) !== '') {
+            return;
+        }
+        echo '<div class="flashmessage flashmessage-warning" role="status">'
+            . osc_esc_html(__('Google Maps is chosen for address lookup but has no API key, so no address is looked up.', 'google-geocoder'))
+            . ' <a href="' . osc_esc_html(osc_settings_page_url(self::PAGE)) . '">'
+            . osc_esc_html(__('Google Maps Geocoder settings', 'google-geocoder')) . '</a></div>';
+    }
+}

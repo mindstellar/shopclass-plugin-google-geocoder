@@ -1,0 +1,57 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Google Maps Geocoder 0.1.0\n"
+"Report-Msgid-Bugs-To: https://github.com/mindstellar/shopclass-plugin-google-geocoder/issues\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Language: \n"
+
+#: settings.php:29
+msgid "A separate key with the Geocoding API turned on, restricted to this server's IP address. Do not reuse the Maps JavaScript key from Settings > General: that one is public and limited to your site's web address, so Google refuses it for lookups made by the server. It is never shown again; leave the box blank to keep the saved key."
+msgstr ""
+
+#: settings.php:23
+msgid "Account"
+msgstr ""
+
+#: settings.php:20
+msgid "Finds the exact map position of a listing from its street address. Pick Google Maps under Settings > General > Maps > Address lookup to use it."
+msgstr ""
+
+#: settings.php:18
+msgid "Google Maps Geocoder"
+msgstr ""
+
+#: index.php:50
+msgid "Google Maps Geocoder needs Shopclass 7.0 or later and is switched off. Update Shopclass to use it."
+msgstr ""
+
+#: src/Plugin.php:63
+msgid "Google Maps Geocoder settings"
+msgstr ""
+
+#: src/Plugin.php:61
+msgid "Google Maps is chosen for address lookup but has no API key, so no address is looked up."
+msgstr ""
+
+#: settings.php:46
+msgid "Positions are kept for 30 days, the longest Google allows. Google's terms ask that results be shown on a Google map, so use this with the Google Maps display and not with another map."
+msgstr ""
+
+#: settings.php:28
+msgid "Server API key"
+msgstr ""
+
+#: settings.php:39
+msgid "Terms"
+msgstr ""
+
+#: settings.php:34
+msgid "This does not look like a Google API key"
+msgstr ""
+
+#: settings.php:44
+msgid "Using the results"
+msgstr ""
