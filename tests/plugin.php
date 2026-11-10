@@ -20,6 +20,16 @@ use mindstellar\googlegeocoder\Plugin;
 use mindstellar\location\GeocodeProviderRegistry;
 use mindstellar\location\Geocoder;
 
+class Params
+{
+    public static array $values = array();
+
+    public static function getParam($name)
+    {
+        return self::$values[$name] ?? null;
+    }
+}
+
 const SECTION = 'google_geocoder';
 
 harness_section('registry');
@@ -97,5 +107,41 @@ $geocoder = new Geocoder(new GoogleGeocoderProvider('AIzaTEST', $http));
 pin('first lookup hits the service', array(18.5, 73.8), $geocoder->geocode('12 Main St, Pune', 'IN'));
 pin('second lookup comes from the cache', array(18.5, 73.8), $geocoder->geocode('12 Main St, Pune', 'IN'));
 pin('only one request was made', 1, count($http->urls));
+
+harness_section('admin notices API');
+// Declared here, not hoisted, so the earlier sections still run as an older core.
+if (true) {
+    function osc_add_admin_notice(string $type, $text, array $options = array()): void
+    {
+        $GLOBALS['notices'][] = array($type, $text, $options);
+    }
+}
+$GLOBALS['notices'] = array();
+$GLOBALS['prefs']['osclass'][GeocodeProviderRegistry::PREF] = 'google-geocoder';
+$GLOBALS['prefs'][SECTION]['api_key'] = '';
+Plugin::registerNotice();
+[$type, $text, $opts] = $GLOBALS['notices'][0];
+pin('one warning check', 1, count($GLOBALS['notices']));
+pin('warning with the check id', array('warning', 'google_geocoder:no_key', 'plugins'), array($type, $opts['id'], $opts['menu']));
+pin('links to the settings page', osc_settings_page_url(SECTION), $opts['link']);
+check('text is the same sentence', str_contains($text(), 'no API key'));
+check('fires with no key', $opts['when']() === true);
+$GLOBALS['prefs'][SECTION]['api_key'] = 'AIzaTEST';
+check('stops with a key', $opts['when']() === false);
+$GLOBALS['prefs'][SECTION]['api_key'] = '';
+$GLOBALS['prefs']['osclass'][GeocodeProviderRegistry::PREF] = 'other';
+check('stops when another provider is chosen', $opts['when']() === false);
+$GLOBALS['prefs']['osclass'][GeocodeProviderRegistry::PREF] = 'google-geocoder';
+ob_start();
+Plugin::adminNotice();
+pin('no banner on other admin pages', '', ob_get_clean());
+Params::$values = array('page' => 'settings', 'action' => 'custom', 'id' => SECTION);
+ob_start();
+Plugin::adminNotice();
+check('banner on its own settings page', str_contains(ob_get_clean(), 'no API key'));
+Params::$values = array('page' => 'settings', 'action' => 'custom', 'id' => 'other');
+ob_start();
+Plugin::adminNotice();
+pin('no banner on another settings page', '', ob_get_clean());
 
 exit(harness_result());

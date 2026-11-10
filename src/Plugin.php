@@ -57,16 +57,52 @@ final class Plugin
         osc_delete_preference('api_key', self::PAGE);
     }
 
-    /** Warn the owner when this plugin is the chosen lookup but has no key. */
+    /** True when this plugin is the chosen lookup but has no key. */
+    public static function missingKey(): bool
+    {
+        return (string) osc_get_preference(self::CORE_PREF) === GoogleGeocoderProvider::ID
+            && (string) osc_get_preference('api_key', self::PAGE) === '';
+    }
+
+    /** Add the standing warning to the admin bell. Needs a core that has osc_add_admin_notice(). */
+    public static function registerNotice(): void
+    {
+        osc_add_admin_notice('warning', static fn (): string => self::noticeText(), array(
+            'id'         => 'google_geocoder:no_key',
+            'menu'       => 'plugins',
+            'link'       => osc_settings_page_url(self::PAGE),
+            'link_label' => __('Google Maps Geocoder settings', 'google-geocoder'),
+            'when'       => array(self::class, 'missingKey'),
+        ));
+    }
+
+    /**
+     * Banner on every admin page on an older core; with the notices API, only on this plugin's
+     * own settings page.
+     */
     public static function adminNotice(): void
     {
-        if ((string) osc_get_preference(self::CORE_PREF) !== GoogleGeocoderProvider::ID
-            || (string) osc_get_preference('api_key', self::PAGE) !== '') {
+        if (!self::missingKey()) {
+            return;
+        }
+        if (function_exists('osc_add_admin_notice') && !self::onOwnPage()) {
             return;
         }
         echo '<div class="flashmessage flashmessage-warning" role="status">'
-            . osc_esc_html(__('Google Maps is chosen for address lookup but has no API key, so no address is looked up.', 'google-geocoder'))
+            . osc_esc_html(self::noticeText())
             . ' <a href="' . osc_esc_html(osc_settings_page_url(self::PAGE)) . '">'
             . osc_esc_html(__('Google Maps Geocoder settings', 'google-geocoder')) . '</a></div>';
+    }
+
+    private static function noticeText(): string
+    {
+        return __('Google Maps is chosen for address lookup but has no API key, so no address is looked up.', 'google-geocoder');
+    }
+
+    private static function onOwnPage(): bool
+    {
+        return \Params::getParam('page') === 'settings'
+            && \Params::getParam('action') === 'custom'
+            && \Params::getParam('id') === self::PAGE;
     }
 }

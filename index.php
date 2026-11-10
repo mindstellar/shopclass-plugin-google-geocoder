@@ -63,4 +63,7 @@ osc_add_hook(osc_plugin_path(__FILE__) . '_configure', static function () {
 // Built only when something geocodes.
 osc_add_hook(GeocodeProviderRegistry::HOOK, array(Plugin::class, 'register'));
 
+if (function_exists('osc_add_admin_notice')) {
+    Plugin::registerNotice();
+}
 osc_add_hook('admin_page_header', array(Plugin::class, 'adminNotice'), 10);
