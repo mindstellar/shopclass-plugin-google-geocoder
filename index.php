@@ -3,7 +3,7 @@
 Plugin Name: Google Maps Geocoder
 Plugin URI: https://github.com/mindstellar/shopclass-plugin-google-geocoder
 Description: Finds the exact map position of a listing from its street address with the Google Geocoding API. Pick it in Settings > General > Maps > Address lookup.
-Version: 0.1.0
+Version: 0.1.1
 Author: Navjot Tomer (Mindstellar)
 Author URI: https://mindstellar.com
 Short Name: google-geocoder
@@ -63,7 +63,5 @@ osc_add_hook(osc_plugin_path(__FILE__) . '_configure', static function () {
 // Built only when something geocodes.
 osc_add_hook(GeocodeProviderRegistry::HOOK, array(Plugin::class, 'register'));
 
-if (function_exists('osc_add_admin_notice')) {
-    Plugin::registerNotice();
-}
+Plugin::registerNotice();
 osc_add_hook('admin_page_header', array(Plugin::class, 'adminNotice'), 10);

@@ -67,9 +67,13 @@ final class Plugin
     /** Add the standing warning to the admin bell. Needs a core that has osc_add_admin_notice(). */
     public static function registerNotice(): void
     {
+        if (!function_exists('osc_add_admin_notice')) {
+            return;
+        }
         osc_add_admin_notice('warning', static fn (): string => self::noticeText(), array(
             'id'         => 'google_geocoder:no_key',
             'menu'       => 'plugins',
+            'source'     => 'Google Maps Geocoder',
             'link'       => osc_settings_page_url(self::PAGE),
             'link_label' => __('Google Maps Geocoder settings', 'google-geocoder'),
             'when'       => array(self::class, 'missingKey'),
