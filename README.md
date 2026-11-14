@@ -42,7 +42,7 @@ Use a separate key, not the Maps JavaScript key from Settings → General. That 
 
 ## For developers
 
-Run the tests with `./tests/run.sh`. They need no network. Core is read from `../osclass`, or from `SHOPCLASS_CORE`.
+Run the tests with `./tests/run.sh`. They need no network. Core is read from `../shopclass`, or from `SHOPCLASS_CORE`.
 
 ## Support
 
