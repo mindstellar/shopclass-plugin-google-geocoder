@@ -19,7 +19,7 @@ search then uses that point instead of the city or region centre.
 ## Set up
 
 1. In Google Cloud, create an API key, enable the Geocoding API for it, and restrict it by IP address to your server.
-2. Open Plugins → Google Maps Geocoder and paste the key into *Server API key*.
+2. Open Plugins → Google Maps Geocoder → Settings (Plugins → Google Maps Geocoder on Shopclass 7.0) and paste the key into *Server API key*.
 3. Open Settings → General → Maps and choose Google Maps under *Address lookup*.
 
 Use a separate key, not the Maps JavaScript key from Settings → General. That key is public and limited to your site's web address, so Google refuses it for lookups made by the server.
